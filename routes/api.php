@@ -12,10 +12,12 @@ use App\Http\Controllers\API\PresensiController;
 use App\Models\Dosen;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 /**
- * route "/register"    
+ * route "/register"
  * @method "POST"
  */
 Route::post('/register', RegisterController::class)->name('register');
@@ -58,3 +60,18 @@ Route::post("/Kelas-Validasi-Token", [MahasiswaController::class, 'checkTokenVal
 Route::get("/Kelas-Mahasiswa", [KelasController::class, 'kelasSaatIniMahasiswa']);
 //Jadwal
 Route::get("/Dashboard-Mahasiswa-Jadwal-Harini", [MahasiswaController::class, 'jadwalHariIniMhs']);
+
+Route::post('/test-jwt', function (Request $request) {
+    try {
+        $credentials = $request->only('nomor_induk', 'password');
+
+        if (!$token = JWTAuth::attempt($credentials)) {
+            return response()->json(['error' => 'Invalid credentials'], 401);
+        }
+
+        return response()->json(['token' => $token], 200);
+    } catch (\Exception $e) {
+        Log::error('Error during JWT testing: ' . $e->getMessage());
+        return response()->json(['error' => 'Could not create token'], 500);
+    }
+});

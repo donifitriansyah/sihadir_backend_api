@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-
-use function Laravel\Prompts\password;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -26,35 +25,45 @@ class LoginController extends Controller
                 "nomor_induk" => "required",
                 "password" => "required",
             ]);
+
             if ($validator->fails()) {
                 return response()->json($validator->errors(), 422);
             }
+
             $user = User::where("nomor_induk", $request->nomor_induk)->first();
+
             if (!$user) {
                 return response()->json([
                     'status' => 401,
                     'message' => "Nomor induk tidak ditemukan"
                 ], 401);
             }
-            $password = $request->password;
-            $credentials = $request->only('nomor_induk', 'password');
-            if (!$token = auth()->guard('api')->attempt($credentials)) {
-                if (!$user->password = Hash::check($password, $user->password)) {
-                    return response()->json([
-                        'message' => "Password anda salah"
-                    ], 401);
-                }
-            } else {
+
+            if (!Hash::check($request->password, $user->password)) {
                 return response()->json([
-                    'status' => 200,
-                    'user'    => auth()->guard('api')->user(),
-                    'token'   => $token
-                ], 200);
+                    'message' => "Password anda salah"
+                ], 401);
             }
-        } catch (\Throwable $t) {
+
+            if (!$token = JWTAuth::attempt($request->only('nomor_induk', 'password'))) {
+                return response()->json([
+                    'message' => "Autentikasi gagal"
+                ], 401);
+            }
+
+            $user = JWTAuth::user();
+
             return response()->json([
-                "error" => $t->getMessage()
-            ], $t->getCode());
+                'status' => 200,
+                'user'    => $user,
+                'token'   => $token
+            ], 200);
+        } catch (\Throwable $t) {
+            // Logging the error message
+            Log::error('Error during login: ' . $t->getMessage());
+            return response()->json([
+                "error" => "Terjadi kesalahan pada server"
+            ], 500);
         }
     }
 }
