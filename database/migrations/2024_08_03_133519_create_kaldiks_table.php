@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('kaldiks', function (Blueprint $table) {
             $table->id();
+            $table->integer('tahun');
+            $table->string('semester');
+            $table->string('kegiatan');
+            $table->date('waktu_mulai');
+            $table->date('waktu_selesai');
+            $table->enum('status', ['kuliah','fakultatif','libur']);
+            $table->date('lampiran');
+            $table->date('keterangan')->nullable();
             $table->timestamps();
         });
     }
