@@ -76,7 +76,7 @@ class KaldikController extends Controller
     ], 201);
 }
 
-
+    //Update data
     public function updateKaldik(Request $request)
 {
     // Ambil ID dari body request
@@ -140,18 +140,55 @@ class KaldikController extends Controller
         'message' => 'Kaldik updated successfully',
         'data' => $kaldik,
     ], 200);
+
 }
 
+//hapus data
+public function deleteKaldik(Request $request)
+{
+    // Validasi ID dari body request
+    $validator = Validator::make($request->all(), [
+        'id' => 'required|integer|exists:kaldiks,id', // Validasi ID
+    ], [
+        'id.required' => 'ID harus disertakan.',
+        'id.integer' => 'ID harus berupa angka.',
+        'id.exists' => 'ID tidak ditemukan dalam database.',
+    ]);
 
+    // Cek jika validasi gagal
+    if ($validator->fails()) {
+        return response()->json([
+            'message' => 'Validasi gagal',
+            'errors' => $validator->errors(),
+        ], 422);
+    }
 
+    // Ambil ID dari body request
+    $id = $request->input('id');
 
+    // Temukan entri kaldik berdasarkan ID
+    $kaldik = Kaldik::find($id);
 
+    // Cek jika entri tidak ditemukan
+    if (!$kaldik) {
+        Log::info('Kaldik not found:', ['id' => $id]);
+        return response()->json([
+            'message' => 'Kaldik not found',
+        ], 404);
+    }
 
+    // Hapus file lampiran jika ada
+    if ($kaldik->lampiran && Storage::exists($kaldik->lampiran)) {
+        Storage::delete($kaldik->lampiran);
+    }
 
+    // Hapus entri kaldik
+    $kaldik->delete();
 
-
-
-
+    return response()->json([
+        'message' => 'Kaldik deleted successfully',
+    ], 200);
+}
 
 
 
