@@ -6,10 +6,12 @@ use App\Http\Controllers\Api\RegisterController;
 use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\DosenController;
 use App\Http\Controllers\API\JadwalController;
+use App\Http\Controllers\API\KaldikController;
 use App\Http\Controllers\API\MahasiswaController;
 use App\Http\Controllers\API\KelasController;
 use App\Http\Controllers\API\PresensiController;
 use App\Models\Dosen;
+use App\Models\Kaldik;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -60,4 +62,9 @@ Route::post("/Kelas-Validasi-Token", [KelasController::class, 'checkTokenValid']
 Route::get("/Kelas-Mahasiswa", [KelasController::class, 'kelasSaatIniMahasiswa']);
 //Jadwal
 Route::get("/Dashboard-Mahasiswa-Jadwal-Harini", [MahasiswaController::class, 'jadwalHariIniMhs']);
+
+//Kalender Akademik
+Route::get("/Dashboard-Kaldik", [KaldikController::class, 'dashboardKaldik']);
+Route::post("/Tambah-Kaldik", [KaldikController::class, 'tambahKaldik']);
+Route::patch('/Update-Kaldik', [KaldikController::class, 'updateKaldik']);
 
