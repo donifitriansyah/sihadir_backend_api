@@ -75,5 +75,9 @@ Route::post("/Simpan-Jadwal", [JadwalController::class, 'simpanJadwal']);
 Route::patch("/Update-Jadwal", [JadwalController::class, 'updateJadwal']);
 Route::delete("/Delete-Jadwal", [JadwalController::class, 'deleteJadwal']);
 
-
+//Kelas
+Route::get("/tabel-kelas", [KelasController::class, 'tableKelas']);
+Route::put("/updatetable-Kelas/{id_kls}", [KelasController::class, 'updatetableKelas']);
+Route::post("/createtable-Kelas", [KelasController::class, 'createtableKelas']);
+Route::delete('/deletetable-Kelas/{id_kls}', [KelasController::class, 'deletetableKelas']);
 
