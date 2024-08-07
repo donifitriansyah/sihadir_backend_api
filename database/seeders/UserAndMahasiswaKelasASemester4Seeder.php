@@ -43,6 +43,7 @@ class UserAndMahasiswaKelasASemester4Seeder extends Seeder
             ['nim' => '3202216110', 'nama' => 'NAIA FATIHA','dosen_pa' => 1],
             ['nim' => '3202216112', 'nama' => 'DONI FITRIANSYAH','dosen_pa' => 1],
             ['nim' => '3202216122', 'nama' => 'FACHRI HIBATUL HAQ','dosen_pa' => 1],
+            ['nim' => '3202116086', 'nama' => 'FAADHILLAH DESTIA FITRI','dosen_pa' => 1],
         ];
 
         foreach ($mahasiswaData as $mahasiswa) {
