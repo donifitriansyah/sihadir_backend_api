@@ -59,30 +59,30 @@ class DosenController extends Controller
         }
     }
     public function konfirmMahasiswa(Request $request)
-    {
-        $nidn = $request->query('nomor_induk');
-        try {
-
-            $konfirmMahasiswa = DB::table('mahasiswas')
-                ->join('kelas', 'mahasiswas.id_kls', '=', 'kelas.id_kls')
-                ->join('presensis', 'mahasiswas.id_mhs', '=', 'presensis.id_mhs',)
-                ->join('ket_mhs', 'presensis.id_presensi', '=', 'ket_mhs.id_presensi')
-                ->join('logs', 'presensis.id_tahun_ajar', '=', 'logs.id_tahun_ajar')
-                ->join('dosens', 'logs.id_dosen', '=', 'dosens.id_dosen')
-                ->where('dosens.nidn', '=', $nidn)
-                ->where('ket_mhs.status_confirm', '=', '0')
-                ->where('surat_bukti', '<>', 'NULL')
-                ->select('presensis.id_presensi', 'presensis.status', 'mahasiswas.nama', 'mahasiswas.nim', 'kelas.smt', 'kelas.abjad_kls')->get();
-            return response()->json([
-                'status' => 200,
-                'Konfirm' => $konfirmMahasiswa
-            ], 200);
-        } catch (\Throwable $th) {
-            return response()->json([
-                "error" => $th->getMessage()
-            ], $th->getCode());
-        }
+{
+    $nidn = $request->query('nomor_induk');
+    try {
+        $konfirmMahasiswa = DB::table('mahasiswas')
+            ->join('kelas', 'mahasiswas.id_kls', '=', 'kelas.id_kls')
+            ->join('presensis', 'mahasiswas.id_mhs', '=', 'presensis.id_mhs',)
+            ->join('ket_mhs', 'presensis.id_presensi', '=', 'ket_mhs.id_presensi')
+            ->join('logs', 'presensis.id_tahun_ajar', '=', 'logs.id_tahun_ajar')
+            ->join('dosens', 'logs.id_dosen', '=', 'dosens.id_dosen')
+            ->where('dosens.nidn', '=', $nidn)
+            ->where('ket_mhs.status_confirm', '=', '0')
+            ->where('surat_bukti', '<>', 'NULL')
+            ->select('presensis.id_presensi', 'presensis.status', 'mahasiswas.nama', 'mahasiswas.nim', 'kelas.smt', 'kelas.abjad_kls')->get();
+        return response()->json([
+            'status' => 200,
+            'Konfirm' => $konfirmMahasiswa
+        ], 200);
+    } catch (\Throwable $th) {
+        return response()->json([
+            "error" => $th->getMessage()
+        ], $th->getCode());
     }
+}
+
 
     public function tolakSurat(Request $request, $konfirmMahasiswa)
     {

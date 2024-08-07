@@ -53,25 +53,17 @@ Route::get("/Kelas-Tutup-Kelas", [KelasController::class, 'tutupKelas']);
 Route::get("/Presensi-Dosen-Perminggu", [PresensiController::class, 'rekapPermingguDosen']);
 
 //Mahasiswa
-// Route::get("/Dashboard-Mahasiswa", MahasiswaController::class);
+Route::get("/Dashboard-Mahasiswa", [MahasiswaController::class, 'profilMahasiswa']);
 Route::get("/Dashboard-Mahasiswa-Konfirmasi-Kehadiran-Anda", [MahasiswaController::class, 'daftarKetidakhadiranMhs']);
 Route::get("/Dashboard-Kirim-Surat", [MahasiswaController::class, 'kirimSuratKetidakhadiran']);
-Route::post("/Kelas-Validasi-Token", [MahasiswaController::class, 'checkTokenValid']);
+Route::post("/Kelas-Validasi-Token", [KelasController::class, 'checkTokenValid']);
 Route::get("/Kelas-Mahasiswa", [KelasController::class, 'kelasSaatIniMahasiswa']);
+
 //Jadwal
 Route::get("/Dashboard-Mahasiswa-Jadwal-Harini", [MahasiswaController::class, 'jadwalHariIniMhs']);
 
-Route::post('/test-jwt', function (Request $request) {
-    try {
-        $credentials = $request->only('nomor_induk', 'password');
-
-        if (!$token = JWTAuth::attempt($credentials)) {
-            return response()->json(['error' => 'Invalid credentials'], 401);
-        }
-
-        return response()->json(['token' => $token], 200);
-    } catch (\Exception $e) {
-        Log::error('Error during JWT testing: ' . $e->getMessage());
-        return response()->json(['error' => 'Could not create token'], 500);
-    }
-});
+//kelas
+Route::get("/tabel-kelas", [KelasController::class, 'tableKelas']);
+Route::put("/updatetable-Kelas/{id_kls}", [KelasController::class, 'updatetableKelas']);
+Route::post("/createtable-Kelas", [KelasController::class, 'createtableKelas']);
+Route::delete('/deletetable-Kelas/{id_kls}', [KelasController::class, 'deletetableKelas']);

@@ -59,7 +59,6 @@ class LoginController extends Controller
                 'token'   => $token
             ], 200);
         } catch (\Throwable $t) {
-            // Logging the error message
             Log::error('Error during login: ' . $t->getMessage());
             return response()->json([
                 "error" => "Terjadi kesalahan pada server"

@@ -10,6 +10,7 @@ use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use PhpParser\Node\Stmt\Catch_;
 
 class MahasiswaController extends Controller
@@ -99,51 +100,83 @@ class MahasiswaController extends Controller
             }
         }
     }
+
     public function kirimSuratKetidakhadiran(Request $request)
     {
-        $nim = $request->nomor_induk;
-        $sts = $request->status;
-        $alamatsurat = $request->surat;
-        $keterangan = $request->keterangan;
-        // try {
-        $kirimKetidakhadiran = DB::table('mahasiswas')
-            ->join('kelas', 'mahasiswas.id_kls', '=', 'kelas.id_kls')
-            ->join('presensis', 'mahasiswas.id_mhs', '=', 'presensis.id_mhs')
-            ->join('logs', 'presensis.id_tahun_ajar', '=', 'logs.id_tahun_ajar')
-            ->join('dosens', 'logs.id_dosen', '=', 'dosens.id_dosen')
-            ->join('ket_mhs', 'presensis.id_presensi', '=', 'ket_mhs.id_presensi')
-            ->where('mahasiswas.nim', '=', $nim)
-            ->where('presensis.status', '=', 'A')
-            ->where('ket_mhs.status_confirm', '=', '0')
-            ->select('presensis.id_presensi', 'presensis.status', 'mahasiswas.nama', 'mahasiswas.nim', 'kelas.smt', 'kelas.abjad_kls')->get();
-        if ($kirimKetidakhadiran) {
-            $insertKetidakHadiran = DB::table('ket_mhs')
-                ->insert([
-                    'ket_mhs.status_confirm' => 0,
-                    'ket_mhs.surat_bukti' => $alamatsurat,
-                    'ket_mhs.deskripsi' => $keterangan,
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
-            $updatepresensi = DB::table('presensis')
-                ->join('mahasiswas', 'presensis.id_mhs', '=', 'mahasiswas.id_mhs')
-                ->where('mahasiswas.nim', '=', $nim)->update([
-                    'status' => $sts
-                ]);
-        } else {
+        $nim = $request->input('nomor_induk');
+        $sts = $request->input('status');
+        $alamatsurat = $request->input('surat');
+        $keterangan = $request->input('keterangan');
+
+        // Log parameter yang diterima
+        Log::info('Received parameters', compact('nim', 'sts', 'alamatsurat', 'keterangan'));
+
+        // Query untuk mendapatkan data mahasiswa
+        $mahasiswa = DB::table('mahasiswas')
+            ->where('nim', '=', $nim)
+            ->first();
+        Log::info('Mahasiswa Data', ['data' => $mahasiswa]);
+
+        if (!$mahasiswa) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data mahasiswa tidak ditemukan'
+            ], 404);
         }
+
+        // Query untuk mendapatkan data presensi
+        $presensi = DB::table('presensis')
+            ->where('id_mhs', '=', $mahasiswa->id_mhs)
+            ->where('status', '=', 'A')
+            ->first();
+        Log::info('Presensi Data', ['data' => $presensi]);
+
+        if (!$presensi) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data presensi tidak ditemukan'
+            ], 404);
+        }
+
+        // Query untuk mendapatkan data ketidakhadiran
+        $ketidakhadiran = DB::table('ket_mhs')
+            ->where('id_presensi', '=', $presensi->id_presensi)
+            ->where('status_confirm', '=', '0')
+            ->first();
+        Log::info('Ketidakhadiran Data', ['data' => $ketidakhadiran]);
+
+        if ($ketidakhadiran) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Data ketidakhadiran sudah ada dan belum dikonfirmasi'
+            ], 404);
+        }
+
+        // Insert data ketidakhadiran
+        $insertKetidakHadiran = DB::table('ket_mhs')->insert([
+            'id_presensi' => $presensi->id_presensi,
+            'status_confirm' => 0,
+            'surat_bukti' => $alamatsurat,
+            'deskripsi' => $keterangan,
+            'created_at' => now(),
+            'updated_at' => now()
+        ]);
+        Log::info('Insert KetidakHadiran', ['data' => $insertKetidakHadiran]);
+
+        // Update data presensi
+        $updatePresensi = DB::table('presensis')
+            ->where('id_presensi', '=', $presensi->id_presensi)
+            ->update(['status' => $sts]);
+        Log::info('Update Presensi', ['data' => $updatePresensi]);
+
         return response()->json([
             'status' => 200,
-            'daftarKetidakHadiran' => $kirimKetidakhadiran,
-            'surat' => $insertKetidakHadiran,
-            'status' => $updatepresensi
+            'daftarKetidakHadiran' => $insertKetidakHadiran,
+            'update_status' => $updatePresensi
         ], 200);
-        // } catch (\Throwable $th) {
-        //     return response()->json([
-        //         "error" => $th->getMessage(),
-        //     ], $th->getCode());
-        // }
     }
+
+
     public function jadwalHariIniMhs(Request $request)
     {
         $nim = $request->nomor_induk;
@@ -175,5 +208,5 @@ class MahasiswaController extends Controller
         }
     }
 
-    
+
 }

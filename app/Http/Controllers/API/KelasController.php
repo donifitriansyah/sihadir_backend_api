@@ -5,11 +5,13 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Models\Jadwal;
 use App\Models\Dosen;
+use App\Models\Kelas;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class KelasController extends Controller
 {
@@ -50,7 +52,7 @@ class KelasController extends Controller
                     'dosens.nama',
                     'matkuls.nama as Mata Kuliah',
                     DB::raw(
-                        'DATE_FORMAT(CURDATE(), "%e %M %Y") AS Tanggal 
+                        'DATE_FORMAT(CURDATE(), "%e %M %Y") AS Tanggal
                         ,CONCAT(TIME_FORMAT(jadwals.start, "%H.%i"), " - ",TIME_FORMAT(jadwals.finish   , "%H.%i")) AS Waktu'
                     ),
                     'kelas.smt',
@@ -119,7 +121,7 @@ class KelasController extends Controller
                 'dosens.nama',
                 'matkuls.nama as Mata Kuliah',
                 DB::raw(
-                    'DATE_FORMAT(CURDATE(), "%e %M %Y") AS Tanggal 
+                    'DATE_FORMAT(CURDATE(), "%e %M %Y") AS Tanggal
                         ,CONCAT(TIME_FORMAT(jadwals.start, "%H.%i"), " - ",TIME_FORMAT(jadwals.finish   , "%H.%i")) AS Waktu'
                 ),
                 'kelas.smt',
@@ -211,73 +213,72 @@ class KelasController extends Controller
     //     // ->where('presensis.tgl', '=', '2023-10-27')->get();
     // }
     public function editKehadiranMhs(Request $request)
-    {
-        $ktngPrsn = $request->query('Keterangan_presensi');
-        $sts = $request->query('status');
-        $jmlh = $request->query('jumlah_jam');
-        $nim = $request->query('nomor_induk');
-        $id_jdwl = $request->query('id_jdwl');
-        try {
-            // Fetching the student record based on provided filters
-            $getIdMhs = DB::table('presensis')
-                ->join('mahasiswas', 'presensis.id_mhs', '=', 'mahasiswas.id_mhs')
-                // ->where('presensis.id_tahun_ajar', '=', 9)
-                // ->where('mahasiswas.nim', '=', '3202116025')
-                // ->where('presensis.tgl', '=', '2023-10-27')
-                ->where('mahasiswas.nim', '=', $nim)
-                ->where('presensis.id_tahun_ajar', '=', $id_jdwl)
-                ->where('presensis.tgl', '=', date('Y-m-d'))->first()
-                ->first(); // Using first() instead of get() to fetch a single record
+{
+    $ktngPrsn = $request->query('Keterangan_presensi');
+    $sts = $request->query('status');
+    $jmlh = $request->query('jumlah_jam');
+    $nim = $request->query('nomor_induk');
+    $id_jdwl = $request->query('id_jdwl');
 
-            if ($getIdMhs) {
-                $updateData = [
-                    'presensis.kehadiran' => ($ktngPrsn === 'Masuk') ? ($getIdMhs->ketidakhadiran - $jmlh) : ($getIdMhs->kehadiran - $jmlh),
-                    'presensis.ketidakhadiran' => $jmlh
-                ];
+    try {
+        // Fetching the student record based on provided filters
+        $getIdMhs = DB::table('presensis')
+            ->join('mahasiswas', 'presensis.id_mhs', '=', 'mahasiswas.id_mhs')
+            ->where('mahasiswas.nim', '=', $nim)
+            ->where('presensis.id_tahun_ajar', '=', $id_jdwl)
+            ->where('presensis.tgl', '=', date('Y-m-d'))
+            ->first(); // Using first() instead of get() to fetch a single record
 
-                // Mapping status values to their respective codes
-                $statusCodes = [
-                    'Alpa' => 'A',
-                    'Izin' => 'I',
-                    'Sakit' => 'S'
-                ];
+        if ($getIdMhs) {
+            $updateData = [
+                'kehadiran' => ($ktngPrsn === 'Masuk') ? ($getIdMhs->ketidakhadiran - $jmlh) : ($getIdMhs->kehadiran - $jmlh),
+                'ketidakhadiran' => $jmlh
+            ];
 
-                if (array_key_exists($sts, $statusCodes)) {
-                    $updateData['presensis.status'] = $statusCodes[$sts];
-                }
+            // Mapping status values to their respective codes
+            $statusCodes = [
+                'Alpa' => 'A',
+                'Izin' => 'I',
+                'Sakit' => 'S'
+            ];
 
-                // Update the attendance record based on conditions
-                $updateMhs = DB::table('presensis')
-                    ->where('presensis.id_presensi', '=', $getIdMhs->id_presensi)
-                    ->update($updateData);
-
-                $limitSurat = now()->addDays(2);
-                $ket_mhs = DB::table('ket_mhs')
-                    ->where('presensis.id_presensi', '=', $getIdMhs->id_presensi)
-                    ->insert([
-                        'id_presensi' => $getIdMhs->id_presensi,
-                        'status_confirm' => 0,
-                        'surat_bukti' => null,
-                        'deskripsi' => null,
-                        'limit_surat' => $limitSurat
-                    ]);
-                return response()->json([
-                    'status' => 200,
-                    'getid' => $getIdMhs,
-                    'updated' => $updateMhs,
-                    'ket_mhs' => $ket_mhs
-                ], 200);
-            } else {
-                return response()->json([
-                    'data' => "data kosong"
-                ]);
+            if (array_key_exists($sts, $statusCodes)) {
+                $updateData['status'] = $statusCodes[$sts];
             }
-        } catch (\Throwable $th) {
+
+            // Update the attendance record based on conditions
+            $updateMhs = DB::table('presensis')
+                ->where('id_presensi', '=', $getIdMhs->id_presensi)
+                ->update($updateData);
+
+            $limitSurat = now()->addDays(2);
+            $ket_mhs = DB::table('ket_mhs')
+                ->insert([
+                    'id_presensi' => $getIdMhs->id_presensi,
+                    'status_confirm' => 0,
+                    'surat_bukti' => null,
+                    'deskripsi' => null,
+                    'limit_surat' => $limitSurat
+                ]);
+
             return response()->json([
-                "error" => $th->getMessage()
-            ], 400);
+                'status' => 200,
+                'getid' => $getIdMhs,
+                'updated' => $updateMhs,
+                'ket_mhs' => $ket_mhs
+            ], 200);
+        } else {
+            return response()->json([
+                'data' => "data kosong"
+            ]);
         }
+    } catch (\Throwable $th) {
+        return response()->json([
+            "error" => $th->getMessage()
+        ], 400);
     }
+}
+
     public function tutupKelas(Request $request)
     {
         $id_jdwl = $request->query('id_jdwl');
@@ -291,7 +292,7 @@ class KelasController extends Controller
         //get id dosen
         $id_dosen = DB::table('dosens')->where('dosens.nidn', '=', $nidn)->value('id_dosen');
         //get jumlah_jam_ajar
-        // if semester ganjil 
+        // if semester ganjil
         $jam_ajar = DB::table('presensis')
             ->selectRaw("
             CASE
@@ -326,15 +327,15 @@ class KelasController extends Controller
             //             END
             //         ELSE finish_kls
             //         END AS jam_ajar
-            // FROM 
+            // FROM
             // tb_presensi,log,tb_jdwl
-            // WHERE 
+            // WHERE
             // tb_presensi.id_tahun_ajar=log.id_tahun_ajar
-            // AND 
-            // tb_jdwl.id_jdwl=log.id_jdwl 
-            // AND 
-            // tb_jdwl.id_jdwl=1 
-            // AND log.id_dosen=23 
+            // AND
+            // tb_jdwl.id_jdwl=log.id_jdwl
+            // AND
+            // tb_jdwl.id_jdwl=1
+            // AND log.id_dosen=23
             // AND tgl = CURDATE();
             ->join('logs', 'presensis.id_tahun_ajar', '=', 'logs.id_tahun_ajar')
             ->join('jadwals', 'jadwals.id_jdwl', '=', 'logs.id_jdwl')
@@ -376,16 +377,56 @@ class KelasController extends Controller
         ], 200);
     }
     //---------------------------------------------------------------------------MAHASISWA//////////////////////////////////////////////////////////////////////////
+
     public function kelasSaatIniMahasiswa(Request $request)
     {
         $id_jdwl = $request->query('id_jdwl');
+        Log::info('Received id_jdwl', ['id_jdwl' => $id_jdwl]);
+
+        $today = date('Y-m-d');
+        Log::info('Current date', ['date' => $today]);
+
+        $presensis = DB::table('presensis')
+            ->where('id_tahun_ajar', '=', $id_jdwl)
+            ->where('tgl', '=', $today)
+            ->get();
+        Log::info('Presensis Data', ['data' => $presensis]);
+
+        $mahasiswas = DB::table('mahasiswas')
+            ->join('presensis', 'mahasiswas.id_mhs', '=', 'presensis.id_mhs')
+            ->where('presensis.id_tahun_ajar', '=', $id_jdwl)
+            ->where('presensis.tgl', '=', $today)
+            ->get();
+        Log::info('Mahasiswas Data', ['data' => $mahasiswas]);
+
+        $kelas = DB::table('kelas')
+            ->join('mahasiswas', 'kelas.id_kls', '=', 'mahasiswas.id_kls')
+            ->join('presensis', 'mahasiswas.id_mhs', '=', 'presensis.id_mhs')
+            ->where('presensis.id_tahun_ajar', '=', $id_jdwl)
+            ->where('presensis.tgl', '=', $today)
+            ->get();
+        Log::info('Kelas Data', ['data' => $kelas]);
+
+        $jadwals = DB::table('jadwals')
+            ->join('kelas', 'jadwals.id_kls', '=', 'kelas.id_kls')
+            ->join('mahasiswas', 'kelas.id_kls', '=', 'mahasiswas.id_kls')
+            ->join('presensis', 'mahasiswas.id_mhs', '=', 'presensis.id_mhs')
+            ->where('presensis.id_tahun_ajar', '=', $id_jdwl)
+            ->where('presensis.tgl', '=', $today)
+            ->get();
+        Log::info('Jadwals Data', ['data' => $jadwals]);
+
         $tableKelas = DB::table('presensis')
             ->join('mahasiswas', 'presensis.id_mhs', '=', 'mahasiswas.id_mhs')
             ->join('kelas', 'mahasiswas.id_kls', '=', 'kelas.id_kls')
             ->join('jadwals', 'kelas.id_kls', '=', 'jadwals.id_kls')
             ->where('presensis.id_tahun_ajar', '=', $id_jdwl)
-            ->where('presensis.tgl', '=', date('Y-m-d'))
-            ->select(DB::raw('distinct presensis.*'))->get();
+            ->where('presensis.tgl', '=', $today)
+            ->select(DB::raw('distinct presensis.*'))
+            ->get();
+
+        Log::info('Query Result Count', ['count' => $tableKelas->count()]);
+        Log::info('Query Result Data', ['data' => $tableKelas]);
 
         return response()->json([
             'status' => 200,
@@ -394,6 +435,8 @@ class KelasController extends Controller
             ]
         ], 200);
     }
+
+
     public function checkTokenValid(Request $request)
     {
         $nomor_induk = $request->query('nomor_induk');
@@ -412,7 +455,12 @@ class KelasController extends Controller
                                 ->where('mahasiswas.nim', '=', $nomor_induk)
                                 ->where('jadwals.id_jdwl', '=', $Jadwal->id_jdwl)
                                 ->where('presensis.tgl', '=', date('Y-m-d'))
-                                ->select('mahasiswas.id_mhs', 'mahasiswas.nama', 'jadwals.jumlah_jam')->get();
+                                ->select('mahasiswas.id_mhs', 'mahasiswas.nama', 'jadwals.jumlah_jam')
+                                ->get();
+
+                            // Log data to debug
+                            Log::info('Presensi Data: ' . $presensiToUpdate);
+
                             foreach ($presensiToUpdate as $key => $value) {
                                 DB::table('presensis')
                                     ->join('mahasiswas', 'presensis.id_mhs', '=', 'mahasiswas.id_mhs')
@@ -470,4 +518,93 @@ class KelasController extends Controller
     public function updateTablePresensi()
     {
     }
+
+    public function tableKelas(){
+        return Kelas::all();
+    }
+
+    public function updatetableKelas(Request $request, $id_kls)
+{
+    // Validate the request
+    $request->validate([
+        'abjad_kls' => 'string',
+        'smt' => 'integer',
+    ]);
+
+    try {
+        // Log request data
+        Log::info('Request data: ', $request->all());
+        Log::info('Updating class with ID: ' . $id_kls);
+
+        // Find the class by ID
+        $kelas = Kelas::findOrFail($id_kls);
+
+        // Log the found class data
+        Log::info('Class found: ', $kelas->toArray());
+
+        // Update the class with new data
+        $kelas->update($request->only(['abjad_kls', 'smt'])); // Update only the specified fields
+
+        // Log the updated class data
+        Log::info('Class updated successfully: ', $kelas->toArray());
+
+        // Return success response
+        return response()->json([
+            'message' => 'Berhasil memperbarui kelas',
+            'data' => $kelas,
+        ], 200);
+    } catch (\Exception $e) {
+        // Log the error
+        Log::error('Error updating class: ' . $e->getMessage());
+
+        // Return error response
+        return response()->json([
+            'message' => 'Tidak berhasil memperbarui kelas',
+        ], 500);
+    }
+}
+
+public function createtableKelas(Request $request)
+{
+    $request->validate([
+        'abjad_kls' => 'required|string',
+        'smt' => 'required|integer',
+    ]);
+
+    try {
+        $kelas = Kelas::create($request->all());
+
+        return response()->json([
+            'message' => 'Berhasil menambahkan kelas',
+            'data' => $kelas,
+        ], 201);
+    } catch (\Exception $e) {
+        // Log the error for debugging purposes
+        Log::error('Error creating class: ' . $e->getMessage());
+
+        return response()->json([
+            'message' => 'Tidak berhasil menambahkan kelas',
+        ], 500);
+    }
+}
+
+public function deletetableKelas($id_kls)
+{
+    try {
+        $kelas = Kelas::where('id_kls', $id_kls)->firstOrFail();
+        $kelas->delete();
+
+        return response()->json([
+            'message' => 'Berhasil menghapus kelas',
+        ], 200);
+    } catch (\Exception $e) {
+        // Log the error for debugging purposes
+        Log::error('Error deleting class: ' . $e->getMessage());
+
+        return response()->json([
+            'message' => 'Tidak berhasil menghapus kelas',
+        ], 500);
+    }
+}
+
 }
