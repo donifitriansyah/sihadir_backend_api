@@ -16,7 +16,7 @@ class DosenController extends Controller
     {
         $nidn = $request->query('nomor_induk');
         try {
-            $dosen = Dosen::select('nidn', 'nama', 'foto')
+            $dosen = Dosen::select('nidn','nip', 'nama', 'foto', 'nama', 'no_hp')
                 ->where('nidn', $nidn)->get();
             return response()->json([
                 'status' => 200,
