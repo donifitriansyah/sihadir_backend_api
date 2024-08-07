@@ -190,6 +190,4 @@ public function deleteKaldik(Request $request)
     ], 200);
 }
 
-
-
 }
