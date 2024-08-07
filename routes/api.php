@@ -69,4 +69,11 @@ Route::post("/Tambah-Kaldik", [KaldikController::class, 'tambahKaldik']);
 Route::patch('/Update-Kaldik', [KaldikController::class, 'updateKaldik']);
 Route::delete('/Delete-Kaldik', [KaldikController::class, 'deleteKaldik']);
 
+//Jadwal
+Route::get("/Dashboard-Jadwal", [JadwalController::class, 'dashboardJadwal']);
+Route::post("/Simpan-Jadwal", [JadwalController::class, 'simpanJadwal']);
+Route::patch("/Update-Jadwal", [JadwalController::class, 'updateJadwal']);
+Route::delete("/Delete-Jadwal", [JadwalController::class, 'deleteJadwal']);
+
+
 
