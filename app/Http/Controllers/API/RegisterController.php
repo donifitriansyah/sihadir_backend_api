@@ -25,7 +25,9 @@ class RegisterController extends Controller
             'role' => 'required',
             'name'      => 'required',
             'nomor_induk' => 'required',
-            'password'  => 'required|min:8|confirmed'
+            'password'  => 'required|min:8|confirmed',
+            'email' => 'required'
+
         ]);
 
         //if validation fails
@@ -43,7 +45,9 @@ class RegisterController extends Controller
                 'role' => $request->role,
                 'name'      => $request->name,
                 'nomor_induk'     => $request->nomor_induk,
+                'email'     => $request->email,
                 'password'  => bcrypt($request->password)
+
             ]);
             $admin = Admin::create([
                 'user_id' => $user->id,
@@ -62,6 +66,7 @@ class RegisterController extends Controller
                 'role' => $request->role,
                 'name'      => $request->name,
                 'nomor_induk'     => $request->nomor_induk,
+                'email'     => $request->email,
                 'password'  => bcrypt($request->password)
             ]);
             $dosen = Dosen::create([
@@ -84,6 +89,7 @@ class RegisterController extends Controller
                 'role' => $request->role,
                 'name'      => $request->name,
                 'nomor_induk'     => $request->nomor_induk,
+                'email'     => $request->email,
                 'password'  => bcrypt($request->password)
             ]);
             $mahasiswa = Mahasiswa::create([
