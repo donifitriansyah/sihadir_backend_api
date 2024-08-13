@@ -9,6 +9,7 @@ use App\Http\Controllers\API\JadwalController;
 use App\Http\Controllers\API\KaldikController;
 use App\Http\Controllers\API\MahasiswaController;
 use App\Http\Controllers\API\KelasController;
+use App\Http\Controllers\Api\MatkulController;
 use App\Http\Controllers\API\PresensiController;
 use App\Models\Dosen;
 use App\Models\Kaldik;
@@ -81,3 +82,8 @@ Route::put("/updatetable-Kelas/{id_kls}", [KelasController::class, 'updatetableK
 Route::post("/createtable-Kelas", [KelasController::class, 'createtableKelas']);
 Route::delete('/deletetable-Kelas/{id_kls}', [KelasController::class, 'deletetableKelas']);
 
+//Mata Kuliah
+Route::get("/Dashboard-Matkul", [MatkulController::class, 'dashboardMatkul']);
+Route::post("/Tambah-Matkul", [MatkulController::class, 'tambahMatkul']);
+Route::patch("/Update-Matkul", [MatkulController::class, 'updateMatkul']);
+Route::delete("/Delete-Matkul", [MatkulController::class, 'deleteMatkul']);

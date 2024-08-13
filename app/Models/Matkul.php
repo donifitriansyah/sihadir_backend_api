@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Matkul extends Model
 {
     use HasFactory;
-    
+    protected $primaryKey = 'id_mk';
+    protected $fillable = [
+        'kd_mk',
+        'nama',
+        'smt',
+        'sks'
+    ];
     protected $guarded = [];
 }
