@@ -291,6 +291,25 @@ class KelasController extends Controller
         }
     }
 
+    public function kelasSaatIniMahasiswa(Request $request)
+    {
+        $id_jdwl = $request->query('id_jdwl');
+        $tableKelas = DB::table('presensis')
+            ->join('mahasiswas', 'presensis.id_mhs', '=', 'mahasiswas.id_mhs')
+            ->join('kelas', 'mahasiswas.id_kls', '=', 'kelas.id_kls')
+            ->join('jadwals', 'kelas.id_kls', '=', 'jadwals.id_kls')
+            ->where('presensis.id_tahun_ajar', '=', $id_jdwl)
+            ->where('presensis.tgl', '=', date('Y-m-d'))
+            ->select(DB::raw('distinct presensis.*'))->get();
+
+        return response()->json([
+            'status' => 200,
+            'kelasSaatIni' => [
+                'tableKelas' => $tableKelas,
+            ]
+        ], 200);
+    }
+
     // public function tutupKelas(Request $request)
     // {
     //     $id_jdwl = $request->query('id_jdwl');
@@ -462,9 +481,6 @@ if ($jam_ajar) {
         'datakelas' => $simpanDataKelas
     ], 200);
 }
-
-
-
     public function checkTokenValid(Request $request)
     {
         $nomor_induk = $request->query('nomor_induk');
