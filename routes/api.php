@@ -67,3 +67,8 @@ Route::get("/tabel-kelas", [KelasController::class, 'tableKelas']);
 Route::put("/updatetable-Kelas/{id_kls}", [KelasController::class, 'updatetableKelas']);
 Route::post("/createtable-Kelas", [KelasController::class, 'createtableKelas']);
 Route::delete('/deletetable-Kelas/{id_kls}', [KelasController::class, 'deletetableKelas']);
+
+
+//laporan
+Route::get("/laporanmhs", [MahasiswaController::class , 'LaporanMhs']);
+Route::get("/laporanmhsdosen", [MahasiswaController::class, 'LaporanMhsdosen']);
