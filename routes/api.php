@@ -9,6 +9,7 @@ use App\Http\Controllers\API\JadwalController;
 use App\Http\Controllers\API\KaldikController;
 use App\Http\Controllers\API\MahasiswaController;
 use App\Http\Controllers\API\KelasController;
+use App\Http\Controllers\Api\LaporanController;
 use App\Http\Controllers\Api\MatkulController;
 use App\Http\Controllers\API\PresensiController;
 use App\Models\Dosen;
@@ -61,6 +62,7 @@ Route::get("/Dashboard-Mahasiswa-Konfirmasi-Kehadiran-Anda", [MahasiswaControlle
 Route::get("/Dashboard-Kirim-Surat", [MahasiswaController::class, 'kirimSuratKetidakhadiran']);
 Route::post("/Kelas-Validasi-Token", [KelasController::class, 'checkTokenValid']);
 Route::get("/Kelas-Mahasiswa", [KelasController::class, 'kelasSaatIniMahasiswa']);
+
 //Jadwal
 Route::get("/Dashboard-Mahasiswa-Jadwal-Harini", [MahasiswaController::class, 'jadwalHariIniMhs']);
 
@@ -87,3 +89,8 @@ Route::get("/Dashboard-Matkul", [MatkulController::class, 'dashboardMatkul']);
 Route::post("/Tambah-Matkul", [MatkulController::class, 'tambahMatkul']);
 Route::patch("/Update-Matkul", [MatkulController::class, 'updateMatkul']);
 Route::delete("/Delete-Matkul", [MatkulController::class, 'deleteMatkul']);
+
+
+//Laporan
+Route::get("/Laporan-Mahasiswa", [LaporanController::class , 'LaporanMhs']);
+Route::get("/Laporan-MhsDosen", [LaporanController::class, 'LaporanMhsdosen']);

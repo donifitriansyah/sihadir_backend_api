@@ -12,5 +12,9 @@ class Jadwal extends Model
     public function jadwal(){
         return $this->belongsTo(Jadwal::class);
     }
+    public function presensis()
+{
+    return $this->hasMany(Presensi::class, 'id_jdwl');
+}
     protected $primaryKey = 'id_jdwl';
 }
